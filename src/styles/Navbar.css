@@ -1,0 +1,63 @@
+:root {
+    --primary-color: #f0b90b; /* Couleur principale de Binance */
+    --background-color: #121212; /* Couleur de fond sombre */
+    --text-color: #eaeaea; /* Couleur du texte */
+    --link-color: #f0b90b; /* Couleur des liens */
+    --link-hover-color: #ffffff; /* Couleur des liens au survol */
+    --button-background: #f0b90b; /* Couleur de fond des boutons */
+    --button-text-color: #121212; /* Couleur du texte des boutons */
+  }
+  
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+  
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--background-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+  
+  .navbar-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .nav-link {
+    color: var(--link-color);
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s;
+  }
+  
+  .nav-link:hover {
+    color: var(--link-hover-color);
+  }
+  
+  .nav-button {
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .nav-button:hover {
+    background-color: darken(var(--button-background), 10%);
+  }
+  

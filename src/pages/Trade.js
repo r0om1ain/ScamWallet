@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { fetchCryptoPrices } from '../utils/api';
-import '../styles/Trade.css'; // Assurez-vous de créer ce fichier CSS pour le style
+import { fetchCryptoPrices, fetchCryptoHistory } from '../utils/api';
+import CryptoChart from '../components/CryptoChart';
+import '../styles/Trade.css';
 
 const Trade = () => {
   const [cryptos, setCryptos] = useState([]);
@@ -10,6 +11,7 @@ const Trade = () => {
   const [price, setPrice] = useState('');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cryptoHistory, setCryptoHistory] = useState(null);
 
   // Récupérer les prix des cryptos
   useEffect(() => {
@@ -25,6 +27,28 @@ const Trade = () => {
     };
     getPrices();
   }, []);
+
+  // Récupérer l'historique des prix d'une crypto
+  useEffect(() => {
+    if (selectedCrypto) {
+      const getHistory = async () => {
+        try {
+          const cryptoId = cryptos.find((c) => c.name === selectedCrypto)?.id;
+          if (cryptoId) {
+            const history = await fetchCryptoHistory(cryptoId);
+            setCryptoHistory({
+              name: selectedCrypto,
+              labels: history.prices.map((price) => new Date(price[0]).toLocaleDateString()),
+              prices: history.prices.map((price) => price[1]),
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching crypto history:', error);
+        }
+      };
+      getHistory();
+    }
+  }, [selectedCrypto, cryptos]);
 
   // Gérer la soumission du formulaire
   const handleSubmit = (e) => {
@@ -112,6 +136,12 @@ const Trade = () => {
           Passer l'ordre
         </button>
       </form>
+
+      {cryptoHistory && (
+        <div className="chart-container">
+          <CryptoChart cryptoData={cryptoHistory} />
+        </div>
+      )}
 
       <h2>Ordres en Attente</h2>
       {orders.length === 0 ? (
