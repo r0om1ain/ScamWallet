@@ -7,6 +7,7 @@ import BlogPage from './pages/BlogPage';
 import LoginPage from './pages/LoginPage';
 import Navbar from './components/Navbar';
 import CryptoBlog from './components/CryptoBlog';
+import RegisterPage from './pages/RegisterPage';
 
 const App = () => {
   return (
@@ -18,7 +19,8 @@ const App = () => {
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:id" element={<CryptoBlog />} /> 
-        <Route path="/login" element={<LoginPage />} /> 
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </>
   );

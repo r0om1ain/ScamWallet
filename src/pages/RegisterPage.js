@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -11,22 +11,23 @@ const LoginPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Récupérer les utilisateurs enregistrés
+    // Vérifier si l'utilisateur existe déjà
     const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(u => u.username === username && u.password === password);
-
-    if (user) {
-      // Connecter l'utilisateur
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      navigate('/');
-    } else {
-      setError('Identifiants incorrects');
+    if (users.some(u => u.username === username)) {
+      setError('Ce nom d\'utilisateur est déjà pris');
+      return;
     }
+
+    // Ajouter le nouvel utilisateur
+    const newUser = { username, password };
+    localStorage.setItem('users', JSON.stringify([...users, newUser]));
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    navigate('/');
   };
 
   return (
     <div className="login-container">
-      <h2>Connexion</h2>
+      <h2>Inscription</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Nom d'utilisateur</label>
@@ -47,13 +48,10 @@ const LoginPage = () => {
           />
         </div>
         {error && <p className="error-message">{error}</p>}
-        <button type="submit">Se connecter</button>
-        <p>
-          Pas de compte ? <a href="/register">S'inscrire</a>
-        </p>
+        <button type="submit">S'inscrire</button>
       </form>
     </div>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
