@@ -1,0 +1,33 @@
+.blog-page {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .crypto-blogs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .crypto-blog {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    width: 200px;
+    background-color: #f9f9f9;
+  }
+  
+  .view-blog-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+  }
+  
+  .view-blog-link:hover {
+    background-color: #0056b3;
+  }
