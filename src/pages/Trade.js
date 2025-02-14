@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCryptoPrices, fetchCryptoHistory } from '../utils/api';
+import { Link } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -133,9 +134,14 @@ const Trade = () => {
         selectedCrypto && (
           <div className="chart-container">
             <Line data={chartData} options={chartOptions} />
+            <Link to={`/blog/${selectedCrypto}`} className="view-blog-link">
+              Voir le Blog de {selectedCrypto}
+            </Link>
           </div>
         )
       )}
+
+        
     </div>
   );
 };

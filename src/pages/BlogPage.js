@@ -22,6 +22,7 @@ const BlogPage = () => {
     getCryptos();
   }, []);
 
+  console.log(cryptos);
   return (
     <div className="blog-page">
       <h1>Blogs des Cryptomonnaies</h1>
@@ -30,10 +31,10 @@ const BlogPage = () => {
       ) : (
         <div className="crypto-blogs">
           {cryptos.map((crypto) => (
-            <div key={crypto.id} className="crypto-blog">
-              <h2>{crypto.name}</h2>
+            <div key={crypto.symbol} className="crypto-blog">
+              <h2>{crypto.symbol}</h2>
               <p>Prix actuel : ${crypto.current_price.toLocaleString()}</p>
-              <Link to={`/blog/${crypto.id}`} className="view-blog-link">
+              <Link to={`/blog/${crypto.symbol}`} className="view-blog-link">
                 Voir le Blog
               </Link>
             </div>

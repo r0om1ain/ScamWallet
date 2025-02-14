@@ -24,6 +24,9 @@ const Navbar = () => {
         <Link to="/" className="nav-link">
           Accueil
         </Link>
+        <Link to="/Trade" className="nav-link">
+          Trade
+        </Link>
         <Link to="/wallet" className="nav-link">
           Portefeuille
         </Link>

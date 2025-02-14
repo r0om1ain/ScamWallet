@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import CryptoBlog from './components/CryptoBlog';
 import RegisterPage from './pages/RegisterPage';
 import TransactionHistory from './components/TransactionHistory';
+import Trade from './pages/Trade';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
     <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/Trade" element={<Trade />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:id" element={<CryptoBlog />} /> 
