@@ -19,7 +19,16 @@ const RegisterPage = () => {
     }
 
     // Ajouter le nouvel utilisateur
-    const newUser = { username, password };
+    // Dans RegisterPage.js
+const newUser = { 
+  username, 
+  password,
+  wallet: {
+    usd: 10000, // Solde initial
+    crypto: {},
+    transactions: []
+  }
+};
     localStorage.setItem('users', JSON.stringify([...users, newUser]));
     localStorage.setItem('currentUser', JSON.stringify(newUser));
     navigate('/');
