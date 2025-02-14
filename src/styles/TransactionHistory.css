@@ -1,0 +1,26 @@
+.transaction-history {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .transaction {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .transaction.credit {
+    background-color: #e6ffe6;
+  }
+  
+  .transaction.debit {
+    background-color: #ffe6e6;
+  }

@@ -1,55 +1,37 @@
-/* WalletPage.css */
 .wallet-page {
     padding: 20px;
     max-width: 800px;
     margin: 0 auto;
   }
   
-  .wallet-summary {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+  .transaction-section, .transfer-section {
     margin-bottom: 30px;
   }
   
-  .balance-card {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-  }
-  
-  .transaction-section form {
+  .transaction-section form, .transfer-section form {
     display: flex;
     gap: 10px;
-    margin-bottom: 30px;
     flex-wrap: wrap;
   }
   
   .transaction-section select, 
-  .transaction-section input {
+  .transaction-section input,
+  .transfer-section select,
+  .transfer-section input {
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
   }
   
-  .assets-list {
-    margin-bottom: 30px;
+  .transaction-history {
+    margin-top: 30px;
   }
   
-  .asset-item {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .transaction-history .transaction {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 4px;
+  .transaction {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
   }
   
   .transaction.credit {

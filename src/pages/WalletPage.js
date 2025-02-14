@@ -7,27 +7,35 @@ const WalletPage = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [cryptoBalances, setCryptoBalances] = useState({});
-  const [usdBalance, setUsdBalance] = useState(10000); // Solde initial
+  const [usdBalance, setUsdBalance] = useState(0); // Initialisé à 0
   const [transactionType, setTransactionType] = useState('deposit');
-  const [selectedCrypto, setSelectedCrypto] = useState('BTC');
+  const [selectedCrypto, setSelectedCrypto] = useState('');
   const [amount, setAmount] = useState('');
   const [cryptoPrices, setCryptoPrices] = useState({});
   const [transactions, setTransactions] = useState([]);
+  const [recipient, setRecipient] = useState('');
+  const [usersList, setUsersList] = useState([]);
 
-  // Vérifier la connexion et charger le portefeuille
+
+
+  // Charger les données au montage
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) {
       navigate('/login');
       return;
     }
-    
+
     setCurrentUser(user);
     loadWallet(user.username);
     fetchPrices();
+
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    setUsersList(users.filter(u => u.username !== user.username));
   }, [navigate]);
 
-  const fetchPrices = async () => {
+   // Récupérer les prix des cryptos
+   const fetchPrices = async () => {
     const prices = await fetchCryptoPrices();
     const priceMap = prices.reduce((acc, crypto) => {
       acc[crypto.symbol.toUpperCase()] = crypto.current_price;
@@ -35,6 +43,13 @@ const WalletPage = () => {
     }, {});
     setCryptoPrices(priceMap);
   };
+
+  // Sauvegarder automatiquement quand le portefeuille change
+  useEffect(() => {
+    if (currentUser) {
+      saveWallet();
+    }
+  }, [usdBalance, cryptoBalances, transactions]); // Déclenché sur les changements
 
   const loadWallet = (username) => {
     const users = JSON.parse(localStorage.getItem('users')) || [];
@@ -55,93 +70,178 @@ const WalletPage = () => {
           wallet: {
             usd: usdBalance,
             crypto: cryptoBalances,
-            transactions
-          }
+            transactions: transactions.slice(0, 50), // Garder seulement les 50 dernières
+          },
         };
       }
       return u;
     });
+    
     localStorage.setItem('users', JSON.stringify(updatedUsers));
+    localStorage.setItem('currentUser', JSON.stringify({
+      ...currentUser,
+      wallet: {
+        usd: usdBalance,
+        crypto: cryptoBalances,
+        transactions: transactions.slice(0, 50),
+      },
+    }));
   };
 
   const handleTransaction = (e) => {
     e.preventDefault();
     const numericAmount = parseFloat(amount);
-    
-    if (transactionType === 'deposit') {
-      setUsdBalance(prev => {
-        const newBalance = prev + numericAmount;
-        addTransaction('Dépôt USD', numericAmount);
-        return newBalance;
-      });
-    } else if (transactionType === 'withdraw') {
-      if (usdBalance >= numericAmount) {
-        setUsdBalance(prev => {
-          const newBalance = prev - numericAmount;
-          addTransaction('Retrait USD', -numericAmount);
-          return newBalance;
-        });
+
+    let newUsd = usdBalance;
+    let newCrypto = { ...cryptoBalances };
+    let newTransaction = null;
+
+    switch (transactionType) {
+      case 'deposit':
+        newUsd += numericAmount;
+        newTransaction = {
+          date: new Date().toLocaleString(),
+          description: 'Dépôt USD',
+          amount: numericAmount,
+          type: 'credit',
+        };
+        break;
+
+      case 'withdraw':
+        if (usdBalance >= numericAmount) {
+          newUsd -= numericAmount;
+          newTransaction = {
+            date: new Date().toLocaleString(),
+            description: 'Retrait USD',
+            amount: -numericAmount,
+            type: 'debit',
+          };
+        }
+        break;
+
+      case 'buy': {
+        const cost = numericAmount * cryptoPrices[selectedCrypto];
+        if (usdBalance >= cost) {
+          newUsd -= cost;
+          newCrypto[selectedCrypto] = (newCrypto[selectedCrypto] || 0) + numericAmount;
+          newTransaction = {
+            date: new Date().toLocaleString(),
+            description: `Achat ${selectedCrypto}`,
+            amount: -cost,
+            type: 'debit',
+          };
+        }
+        break;
       }
-    } else if (transactionType === 'buy') {
-      const cost = numericAmount * cryptoPrices[selectedCrypto];
-      if (usdBalance >= cost) {
-        setUsdBalance(prev => prev - cost);
-        setCryptoBalances(prev => ({
-          ...prev,
-          [selectedCrypto]: (prev[selectedCrypto] || 0) + numericAmount
-        }));
-        addTransaction(`Achat ${selectedCrypto}`, -cost);
-      }
-    } else if (transactionType === 'sell') {
-      if ((cryptoBalances[selectedCrypto] || 0) >= numericAmount) {
+
+      case 'sell': {
         const revenue = numericAmount * cryptoPrices[selectedCrypto];
-        setUsdBalance(prev => prev + revenue);
-        setCryptoBalances(prev => ({
-          ...prev,
-          [selectedCrypto]: prev[selectedCrypto] - numericAmount
-        }));
-        addTransaction(`Vente ${selectedCrypto}`, revenue);
+        if ((cryptoBalances[selectedCrypto] || 0) >= numericAmount) {
+          newUsd += revenue;
+          newCrypto[selectedCrypto] -= numericAmount;
+          newTransaction = {
+            date: new Date().toLocaleString(),
+            description: `Vente ${selectedCrypto}`,
+            amount: revenue,
+            type: 'credit',
+          };
+        }
+        break;
       }
     }
-    
-    setAmount('');
-    saveWallet();
-  };
 
-  const addTransaction = (description, amount) => {
-    const newTransaction = {
-      date: new Date().toLocaleString(),
-      description,
-      amount,
-      type: amount > 0 ? 'credit' : 'debit'
+    if (newTransaction) {
+      setUsdBalance(newUsd);
+      setCryptoBalances(newCrypto);
+      setTransactions(prev => [newTransaction, ...prev]);
+      setAmount('');
+    }
+  };
+  // Gérer les transferts de cryptos entre utilisateurs
+  const handleTransfer = (e) => {
+    e.preventDefault();
+
+    if (!currentUser || !recipient) return;
+
+    // Vérifier si l'utilisateur a suffisamment de crypto
+    if ((cryptoBalances[selectedCrypto] || 0) < amount) {
+      alert('Solde insuffisant.');
+      return;
+    }
+
+    // Trouver le destinataire
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const recipientUser = users.find(u => u.username === recipient);
+    if (!recipientUser) {
+      alert('Destinataire introuvable.');
+      return;
+    }
+
+    // Mettre à jour les portefeuilles
+    const updatedCurrentUser = {
+      ...currentUser,
+      wallet: {
+        ...currentUser.wallet,
+        crypto: {
+          ...cryptoBalances,
+          [selectedCrypto]: cryptoBalances[selectedCrypto] - amount,
+        },
+        transactions: [
+          ...transactions,
+          {
+            date: new Date().toLocaleString(),
+            description: `Transfert de ${amount} ${selectedCrypto} à ${recipient}`,
+            amount: -amount,
+            type: 'debit',
+          },
+        ],
+      },
     };
-    setTransactions(prev => [newTransaction, ...prev]);
-  };
 
-  const getTotalValue = () => {
-    return Object.entries(cryptoBalances).reduce((total, [symbol, balance]) => {
-      return total + (balance * (cryptoPrices[symbol] || 0));
-    }, usdBalance);
+    const updatedRecipientUser = {
+      ...recipientUser,
+      wallet: {
+        ...recipientUser.wallet,
+        crypto: {
+          ...recipientUser.wallet.crypto,
+          [selectedCrypto]: (recipientUser.wallet.crypto[selectedCrypto] || 0) + amount,
+        },
+        transactions: [
+          ...(recipientUser.wallet.transactions || []),
+          {
+            date: new Date().toLocaleString(),
+            description: `Réception de ${amount} ${selectedCrypto} de ${currentUser.username}`,
+            amount: amount,
+            type: 'credit',
+          },
+        ],
+      },
+    };
+
+    // Mettre à jour localStorage
+    const updatedUsers = users.map(u => 
+      u.username === currentUser.username ? updatedCurrentUser :
+      u.username === recipientUser.username ? updatedRecipientUser :
+      u
+    );
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+    localStorage.setItem('currentUser', JSON.stringify(updatedCurrentUser));
+
+    // Mettre à jour l'état local
+    setCryptoBalances(updatedCurrentUser.wallet.crypto);
+    setTransactions(updatedCurrentUser.wallet.transactions);
+    alert('Transfert effectué avec succès !');
   };
 
   return (
     <div className="wallet-page">
       <h1>Portefeuille de {currentUser?.username}</h1>
-      
-      <div className="wallet-summary">
-        <div className="balance-card">
-          <h3>Solde USD</h3>
-          <p>${usdBalance.toFixed(2)}</p>
-        </div>
-        <div className="balance-card">
-          <h3>Valeur Totale</h3>
-          <p>${getTotalValue().toFixed(2)}</p>
-        </div>
-      </div>
 
+      {/* Section Transactions */}
       <div className="transaction-section">
+        <h2>Transactions</h2>
         <form onSubmit={handleTransaction}>
-          <select 
+          <select
             value={transactionType}
             onChange={(e) => setTransactionType(e.target.value)}
           >
@@ -167,8 +267,8 @@ const WalletPage = () => {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder={
-              transactionType === 'buy' || transactionType === 'sell' 
-                ? `Quantité ${selectedCrypto}` 
+              transactionType === 'buy' || transactionType === 'sell'
+                ? `Quantité ${selectedCrypto}`
                 : 'Montant USD'
             }
             required
@@ -178,24 +278,53 @@ const WalletPage = () => {
         </form>
       </div>
 
-      <div className="assets-list">
-        <h3>Actifs Cryptos</h3>
-        {Object.entries(cryptoBalances).map(([symbol, balance]) => (
-          <div key={symbol} className="asset-item">
-            <span>{symbol}</span>
-            <span>{balance.toFixed(4)}</span>
-            <span>${((cryptoPrices[symbol] || 0) * balance).toFixed(2)}</span>
-          </div>
-        ))}
+      {/* Section Transfert */}
+      <div className="transfer-section">
+        <h2>Transfert de Crypto</h2>
+        <form onSubmit={handleTransfer}>
+          <select
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            required
+          >
+            <option value="" disabled>Sélectionnez un utilisateur</option>
+            {usersList.map(user => (
+              <option key={user.username} value={user.username}>
+                {user.username}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedCrypto}
+            onChange={(e) => setSelectedCrypto(e.target.value)}
+            required
+          >
+            {Object.keys(cryptoBalances).map(symbol => (
+              <option key={symbol} value={symbol}>{symbol}</option>
+            ))}
+          </select>
+
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Quantité"
+            required
+          />
+
+          <button type="submit">Envoyer</button>
+        </form>
       </div>
 
+      {/* Section Historique des Transactions */}
       <div className="transaction-history">
-        <h3>Historique des Transactions</h3>
-        {transactions.map((t, i) => (
-          <div key={i} className={`transaction ${t.type}`}>
-            <span>{t.date}</span>
-            <span>{t.description}</span>
-            <span>${Math.abs(t.amount).toFixed(2)}</span>
+        <h2>Historique des Transactions</h2>
+        {transactions.map((transaction, index) => (
+          <div key={index} className={`transaction ${transaction.type}`}>
+            <p><strong>Date :</strong> {transaction.date}</p>
+            <p><strong>Description :</strong> {transaction.description}</p>
+            <p><strong>Montant :</strong> ${Math.abs(transaction.amount).toFixed(2)}</p>
           </div>
         ))}
       </div>

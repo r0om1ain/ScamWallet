@@ -4,11 +4,11 @@ import '../styles/Navbar.css';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const isLoggedIn = localStorage.getItem('user') !== null;
+  const isLoggedIn = localStorage.getItem('currentUser') !== null;
 
   // Gérer la déconnexion
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('currentUser');
     navigate('/');
     window.location.reload(); // Pour forcer la mise à jour de l'état de connexion
   };
@@ -17,7 +17,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-brand">
         <Link to="/" className="navbar-logo">
-            Scam-Wallet
+          Scam-Wallet
         </Link>
       </div>
       <div className="navbar-links">
@@ -33,6 +33,11 @@ const Navbar = () => {
         <Link to="/blog" className="nav-link">
           Blog
         </Link>
+        {isLoggedIn ? (
+        <Link to="/transactions" className="nav-link">
+            Historique
+          </Link> 
+        ) : ( "" )}
         {isLoggedIn ? (
           <button onClick={handleLogout} className="nav-button">
             Déconnexion

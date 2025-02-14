@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import Navbar from './components/Navbar';
 import CryptoBlog from './components/CryptoBlog';
 import RegisterPage from './pages/RegisterPage';
+import TransactionHistory from './components/TransactionHistory';
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/blog/:id" element={<CryptoBlog />} /> 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/transactions" element={<TransactionHistory />} />
       </Routes>
     </>
   );
