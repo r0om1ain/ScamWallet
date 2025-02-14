@@ -1,0 +1,27 @@
+.trade {
+  padding: 20px;
+  text-align: center;
+}
+
+.crypto-selector {
+  margin-bottom: 20px;
+}
+
+.crypto-selector label {
+  margin-right: 10px;
+}
+
+.crypto-selector select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.chart-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+}
