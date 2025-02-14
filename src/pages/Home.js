@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { fetchCryptoPricesHome } from '../utils/api';
 import { Link } from 'react-router-dom';
 import '../styles/Home.css';
 
@@ -6,19 +7,29 @@ const Home = () => {
   const [cryptos, setCryptos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Simuler des données locales
+  // Récupérer les prix des cryptos
   useEffect(() => {
-    const fakeData = [
-      { id: 'bitcoin', name: 'Bitcoin', current_price: 50000, price_change_percentage_24h: 2.5, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
-      { id: 'ethereum', name: 'Ethereum', current_price: 4000, price_change_percentage_24h: 1.8, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
-    ];
-    setCryptos(fakeData);
-    setLoading(false);
+    const getPrices = async () => {
+      try {
+        const data = await fetchCryptoPricesHome();
+        setCryptos(data.slice(0, 5)); // Afficher les 5 premières cryptos
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching crypto prices:', error);
+        setLoading(false);
+      }
+    };
+
+    getPrices();
+
+    // Actualiser les prix toutes les 60 secondes
+    const interval = setInterval(getPrices, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="home">
-      <h1>Bienvenue sur Scam-Wallet</h1>
+      <h1>Bienvenue sur Binance-Like</h1>
       <p>
         Une plateforme de trading simulé de cryptomonnaies. Commencez à trader dès maintenant !
       </p>
@@ -38,7 +49,15 @@ const Home = () => {
               <div className="crypto-info">
                 <h3>{crypto.name}</h3>
                 <p>Prix : ${crypto.current_price.toLocaleString()}</p>
-                <p>Variation (24h) : {crypto.price_change_percentage_24h.toFixed(2)}%</p>
+                <p
+                  className={
+                    crypto.price_change_percentage_24h >= 0
+                      ? 'price-up'
+                      : 'price-down'
+                  }
+                >
+                  Variation (24h) : {crypto.price_change_percentage_24h}%
+                </p>
               </div>
             </div>
           ))}
