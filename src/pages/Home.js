@@ -29,9 +29,9 @@ const Home = () => {
 
   return (
     <div className="home">
-      <h1>Bienvenue sur Binance-Like</h1>
+      <h1>Bienvenue sur Scam-Wallet</h1>
       <p>
-        Une plateforme de trading simulé de cryptomonnaies. Commencez à trader dès maintenant !
+        Une plateforme de trading où tu stockes mais tu retires jamais 🥷
       </p>
 
       <Link to="/trade" className="trade-link">
